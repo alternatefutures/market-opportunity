@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Market Opportunity — TAM · SAM · SOM (2026–2030)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  .sr-only{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  body{margin:0;padding:32px;background:#F9F5EE;font-family:'Instrument Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1F223A}
+  .wrap{max-width:1440px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+  .panel{background:#FFFFFF;border:1px solid #E7E0D2;border-radius:12px;padding:18px 18px 14px}
+  .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+  .head .name{font-size:16px;font-weight:600;color:#1F223A}
+  .badge{font-size:11.5px;font-weight:500;padding:3px 10px;border-radius:9px}
+  .badge.blue{color:#0000AF;background:#E6E9FF}
+  .badge.terra{color:#772800;background:#F9E3D6}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:11.5px;color:#6B6F85}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .chip{width:10px;height:10px;border-radius:2px;display:inline-block}
+  .plot{position:relative;width:100%;height:300px}
+  .stats{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #ECE6D9;font-size:11.5px;color:#6B6F85}
+  .stats b{color:#1F223A;font-weight:600}
+  .caption{font-size:12.5px;color:#6B6F85;margin:14px 2px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h2 class="sr-only">Two side by side stacked area charts. Each stacks SOM at the bottom, then the SAM remainder, then the TAM remainder, so total stack height equals TAM. Left panel shows Alternate Clouds reaching 4.4 trillion dollars TAM by 2030 at 25.9 percent CAGR, with SOM of 5 billion. Right panel shows HAP reaching 45.9 billion dollars TAM at 40 percent CAGR, with SOM of 2.25 billion.</h2>
+
+<div class="grid">
+
+  <div class="panel">
+    <div class="head">
+      <span class="name">Alternate Clouds</span>
+      <span class="badge blue">25.9% CAGR</span>
+    </div>
+    <div class="legend">
+      <span><span class="chip" style="background:#0000AF"></span>TAM less SAM</span>
+      <span><span class="chip" style="background:#3D5AFE"></span>SAM less SOM</span>
+      <span><span class="chip" style="background:#9AA8FF"></span>SOM</span>
+    </div>
+    <div class="plot">
+      <canvas id="acStack" role="img" aria-label="Stacked area chart of Alternate Clouds SOM, SAM remainder and TAM remainder from 2026 to 2030">Alternate Clouds stack reaches $4.40T TAM by 2030, of which $625B is SAM and $5B is SOM.</canvas>
+    </div>
+    <div class="stats">
+      <span>TAM <b>$4.40T</b></span>
+      <span>SAM <b>$625.0B</b></span>
+      <span>SOM <b>$5.00B</b></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="head">
+      <span class="name">HAP</span>
+      <span class="badge terra">40.0% CAGR</span>
+    </div>
+    <div class="legend">
+      <span><span class="chip" style="background:#772800"></span>TAM less SAM</span>
+      <span><span class="chip" style="background:#BE4200"></span>SAM less SOM</span>
+      <span><span class="chip" style="background:#F0A67E"></span>SOM</span>
+    </div>
+    <div class="plot">
+      <canvas id="hapStack" role="img" aria-label="Stacked area chart of HAP SOM, SAM remainder and TAM remainder from 2026 to 2030">HAP stack reaches $45.9B TAM by 2030, of which $15B is SAM and $2.25B is SOM.</canvas>
+    </div>
+    <div class="stats">
+      <span>TAM <b>$45.9B</b></span>
+      <span>SAM <b>$15.0B</b></span>
+      <span>SOM <b>$2.25B</b></span>
+    </div>
+  </div>
+
+</div>
+
+<p class="caption">Bands are remainders, so they sum without double counting: total stack height equals TAM. Each panel is scaled to its own product.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function(){
+  var sub = '#6B6F85', grid = '#ECE6D9', ink = '#1F223A';
+
+  function band(label, data, color){
+    return { label: label, data: data, borderColor: '#FFFFFF', backgroundColor: color,
+      borderWidth: 2, fill: true, tension: 0.25, pointRadius: 0 };
+  }
+
+  function money(v){
+    if (v >= 1000) return '$' + Number((v/1000).toFixed(2)) + 'T';
+    if (v >= 1) return '$' + Number(v.toFixed(2)) + 'B';
+    return '$' + Math.round(v*1000) + 'M';
+  }
+
+  function build(id, series, maxY, stepY){
+    new Chart(document.getElementById(id), {
+      type: 'line',
+      data: { labels: ['2026','2027','2028','2029','2030'], datasets: series },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        layout: { padding: { top: 4, right: 6 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1F223A', titleColor: '#F9F5EE', bodyColor: '#F9F5EE',
+            padding: 10, cornerRadius: 8, boxPadding: 4,
+            callbacks: { label: function(c){ return c.dataset.label + ': ' + money(c.parsed.y); } }
+          }
+        },
+        scales: {
+          y: {
+            stacked: true, beginAtZero: true, max: maxY,
+            title: { display: true, text: 'Market size', color: sub, font: { size: 11, family: "'Instrument Sans', sans-serif" } },
+            grid: { color: grid, drawBorder: false },
+            ticks: { color: sub, font: { size: 11, family: "'Instrument Sans', sans-serif" }, stepSize: stepY, callback: function(v){ return money(v); } }
+          },
+          x: {
+            stacked: true,
+            title: { display: true, text: 'Year', color: sub, font: { size: 11, family: "'Instrument Sans', sans-serif" } },
+            grid: { color: grid, drawBorder: false },
+            ticks: { color: sub, font: { size: 11, family: "'Instrument Sans', sans-serif" }, autoSkip: false }
+          }
+        }
+      }
+    });
+  }
+
+  build('acStack', [
+    band('SOM', [1.99, 2.51, 3.16, 3.97, 5.0], '#9AA8FF'),
+    band('SAM less SOM', [246.81, 310.69, 391.14, 492.43, 620.0], '#3D5AFE'),
+    band('TAM less SAM', [1502.2, 1890.8, 2380.7, 2997.6, 3775.0], '#0000AF')
+  ], 5000, 1000);
+
+  build('hapStack', [
+    band('SOM', [0.586, 0.820, 1.148, 1.607, 2.250], '#F0A67E'),
+    band('SAM less SOM', [3.324, 4.650, 6.502, 9.103, 12.750], '#BE4200'),
+    band('TAM less SAM', [8.040, 11.260, 15.770, 22.080, 30.900], '#772800')
+  ], 50, 10);
+})();
+</script>
+</body>
+</html>
